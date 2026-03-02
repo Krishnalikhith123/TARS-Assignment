@@ -63,7 +63,16 @@ export default function ChatPage() {
                                 />
                                 <div>
                                     <h2 className="text-sm font-semibold text-zinc-900">{currentChat.otherUser.name}</h2>
-                                    <p className="text-[10px] text-zinc-500">Online</p>
+                                    <p className={cn(
+                                        "text-[10px]",
+                                        (currentChat.otherUser.lastSeen && Date.now() - currentChat.otherUser.lastSeen < 60000)
+                                            ? "text-emerald-500 font-medium"
+                                            : "text-zinc-500"
+                                    )}>
+                                        {(currentChat.otherUser.lastSeen && Date.now() - currentChat.otherUser.lastSeen < 60000)
+                                            ? "online"
+                                            : "offline"}
+                                    </p>
                                 </div>
                             </div>
                             <button className="text-zinc-400 hover:text-zinc-600">

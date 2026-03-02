@@ -58,3 +58,21 @@ export const getMe = query({
             .unique();
     },
 });
+
+export const heartbeat = mutation({
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return;
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_externalId", (q: any) => q.eq("externalId", identity.subject))
+            .unique();
+
+        if (user) {
+            await ctx.db.patch(user._id, {
+                lastSeen: Date.now(),
+            });
+        }
+    },
+});

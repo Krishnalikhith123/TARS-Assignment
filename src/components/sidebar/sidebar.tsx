@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { UserButton } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, MessageSquare, UserPlus } from "lucide-react";
 import { Skeleton } from "../ui/atoms";
 import { cn } from "@/lib/utils";
@@ -13,8 +13,16 @@ export function Sidebar() {
     const [search, setSearch] = useState("");
     const users = useQuery(api.users.getUsers, { search });
     const conversations = useQuery(api.conversations.getMyConversations);
+    const heartbeat = useMutation(api.users.heartbeat);
     const router = useRouter();
     const params = useParams();
+
+    useEffect(() => {
+        heartbeat();
+        const interval = setInterval(heartbeat, 30000); // Heartbeat every 30 seconds
+        return () => clearInterval(interval);
+    }, [heartbeat]);
+
     const getOrCreateConversation = useMutation(api.conversations.getOrCreate);
 
     const currentChatId = params?.id;
@@ -104,9 +112,12 @@ export function Sidebar() {
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="truncate text-xs text-zinc-500">
-                                            {conv.lastMessage?.content || "Start a conversation"}
-                                        </p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="truncate text-xs text-zinc-500 flex-1">
+                                                {conv.lastMessage?.content || "Start a conversation"}
+                                            </p>
+                                            <UnreadBadge conversationId={conv._id} />
+                                        </div>
                                     </div>
                                 </button>
                             ))
@@ -115,5 +126,16 @@ export function Sidebar() {
                 )}
             </div>
         </div>
+    );
+}
+
+function UnreadBadge({ conversationId }: { conversationId: any }) {
+    const unreadCount = useQuery((api as any).messages.getUnreadCount, { conversationId });
+    if (!unreadCount) return null;
+
+    return (
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-sm">
+            {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
     );
 }

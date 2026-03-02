@@ -7,8 +7,9 @@ export default defineSchema({
     email: v.string(),
     image: v.string(),
     externalId: v.string(), // Clerk ID
+    lastSeen: v.optional(v.number()),
   }).index("by_externalId", ["externalId"]),
-  
+
   conversations: defineTable({
     participantOne: v.id("users"),
     participantTwo: v.id("users"),
@@ -25,4 +26,16 @@ export default defineSchema({
       userIds: v.array(v.id("users")),
     }))),
   }).index("by_conversation", ["conversationId"]),
+
+  typingIndicators: defineTable({
+    conversationId: v.id("conversations"),
+    userId: v.id("users"),
+    expiresAt: v.number(),
+  }).index("by_conversation", ["conversationId"]),
+
+  readReceipts: defineTable({
+    conversationId: v.id("conversations"),
+    userId: v.id("users"),
+    lastReadMessageId: v.id("messages"),
+  }).index("by_conversation_user", ["conversationId", "userId"]),
 });

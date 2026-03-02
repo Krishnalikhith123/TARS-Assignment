@@ -8,8 +8,16 @@ import { Id } from "../../../convex/_generated/dataModel";
 
 export function ChatInput({ conversationId }: { conversationId: Id<"conversations"> }) {
     const [content, setContent] = useState("");
-    const sendMessage = useMutation(api.messages.send);
+    const sendMessage = useMutation((api as any).messages.send);
+    const setTyping = useMutation((api as any).typing.setTyping);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setContent(e.target.value);
+        if (e.target.value.trim()) {
+            setTyping({ conversationId });
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +41,7 @@ export function ChatInput({ conversationId }: { conversationId: Id<"conversation
                     placeholder="Type a message..."
                     className="flex-1 rounded-full border bg-zinc-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={handleContentChange}
                 />
                 <button
                     type="submit"
